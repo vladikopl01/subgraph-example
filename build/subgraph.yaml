@@ -18,6 +18,8 @@ dataSources:
         - ApprovalForAll
         - OwnershipTransferred
         - Transfer
+        - Owner
+        - Token
       abis:
         - name: NFT
           file: NFT/abis/NFT.json

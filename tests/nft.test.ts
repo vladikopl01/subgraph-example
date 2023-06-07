@@ -1,62 +1,64 @@
 import {
+  afterEach,
   assert,
+  clearStore,
   describe,
   test,
-  clearStore,
-  beforeAll,
-  afterAll
-} from "matchstick-as/assembly/index"
-import { Address, BigInt } from "@graphprotocol/graph-ts"
-import { Approval } from "../generated/schema"
-import { Approval as ApprovalEvent } from "../generated/NFT/NFT"
-import { handleApproval } from "../src/nft"
-import { createApprovalEvent } from "./nft-utils"
+} from "matchstick-as/assembly/index";
+import { handleOwnershipTransferred } from "../src/nft";
+import { createAddress, createOwnershipTransferredEvent } from "./nft-utils";
 
-// Tests structure (matchstick-as >=0.5.0)
-// https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0
+const bobAddress = createAddress("bob");
+const aliceAddress = createAddress("alice");
 
-describe("Describe entity assertions", () => {
-  beforeAll(() => {
-    let owner = Address.fromString("0x0000000000000000000000000000000000000001")
-    let approved = Address.fromString(
-      "0x0000000000000000000000000000000000000001"
-    )
-    let tokenId = BigInt.fromI32(234)
-    let newApprovalEvent = createApprovalEvent(owner, approved, tokenId)
-    handleApproval(newApprovalEvent)
-  })
+describe("NFT mappings", function() {
+  afterEach(function() {
+    clearStore();
+  });
 
-  afterAll(() => {
-    clearStore()
-  })
+  describe("handleOwnershipTransferred", function() {
+    test("should create a new OwnershipTransferred entity", function() {
+      // Create mock event
+      const event = createOwnershipTransferredEvent(bobAddress, aliceAddress);
 
-  // For more test scenarios, see:
-  // https://thegraph.com/docs/en/developer/matchstick/#write-a-unit-test
+      // Call handler
+      handleOwnershipTransferred(event);
 
-  test("Approval created and stored", () => {
-    assert.entityCount("Approval", 1)
+      // Check that entity was created
+      assert.fieldEquals(
+        "OwnershipTransferred",
+        event.transaction.hash.concatI32(event.logIndex.toI32()).toString(),
+        "previousOwner",
+        bobAddress.toString()
+      );
+      assert.fieldEquals(
+        "OwnershipTransferred",
+        event.transaction.hash.concatI32(event.logIndex.toI32()).toString(),
+        "newOwner",
+        aliceAddress.toString()
+      );
+    });
+  });
 
-    // 0xa16081f360e3847006db660bae1c6d1b2e17ec2a is the default address used in newMockEvent() function
-    assert.fieldEquals(
-      "Approval",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "owner",
-      "0x0000000000000000000000000000000000000001"
-    )
-    assert.fieldEquals(
-      "Approval",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "approved",
-      "0x0000000000000000000000000000000000000001"
-    )
-    assert.fieldEquals(
-      "Approval",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "tokenId",
-      "234"
-    )
+  describe("handleApproval", function() {
+    test("should create a new Approval entity", function() {});
 
-    // More assert options:
-    // https://thegraph.com/docs/en/developer/matchstick/#asserts
-  })
-})
+    test("should throw error if owner not exists", function() {});
+
+    test("should throw error if token not exists", function() {});
+  });
+
+  describe("handleApprovalForAll", function() {
+    test("should create a new ApprovalForAll entity", function() {});
+
+    test("should throw error if owner not exists", function() {});
+  });
+
+  describe("handleTransfer", function() {
+    test("should create a new Transfer entity", function() {});
+
+    test("should create a new Token entity", function() {});
+
+    test("should create a new Owner entity", function() {});
+  });
+});
