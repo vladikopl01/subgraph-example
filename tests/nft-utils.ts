@@ -12,13 +12,25 @@ import {
   OwnershipTransferred,
   Transfer,
 } from "../generated/NFT/NFT";
+import { Token } from "../generated/schema";
 
-export function createAddress(slug: string = ""): Address {
-  const slugAsBytes = Bytes.fromUTF8(slug);
-  const hashBytes = crypto.keccak256(slugAsBytes);
-  const addressBytesFromHash = hashBytes.toHexString().slice(2, 20);
-  const addressString = "0x" + addressBytesFromHash;
-  return Address.fromString(addressString);
+export function createAddress(input: string = ""): Address {
+  const inputBytes = Bytes.fromUTF8(input);
+  const hashBytes = crypto.keccak256(inputBytes);
+  const addressBytes = hashBytes.slice(12, 32);
+  return Address.fromBytes(Bytes.fromUint8Array(addressBytes));
+}
+
+export function createToken(
+  id: Bytes,
+  creatorId: string,
+  ownerId: string
+): Token {
+  let token = new Token(id.toString());
+  token.owner = creatorId;
+  token.creator = ownerId;
+  token.save();
+  return token;
 }
 
 export function createApprovalEvent(

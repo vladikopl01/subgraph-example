@@ -2,41 +2,51 @@ type OwnershipTransferred @entity(immutable: true) {
   id: Bytes!
   previousOwner: Bytes! # address
   newOwner: Bytes! # address
+  transactionData: TransactionData!
+}
+
+type Token @entity {
+  id: ID! # ID behaves as String
+  creator: User!
+  owner: User!
+  approvals: [Approval!]! @derivedFrom(field: "token")
+  transfers: [Transfer!]! @derivedFrom(field: "token")
 }
 
 type Approval @entity(immutable: true) {
   id: Bytes!
-  owner: Owner!
-  approved: Bytes! # address
-  tokenId: BigInt! # uint256
   token: Token!
-}
-
-type ApprovalForAll @entity(immutable: true) {
-  id: Bytes!
-  owner: Owner!
-  operator: Bytes! # address
-  approved: Boolean!
+  approved: Bytes! # address
+  transactionData: TransactionData!
 }
 
 type Transfer @entity(immutable: true) {
   id: Bytes!
+  token: Token!
   from: Bytes! # address
   to: Bytes! # address
-  token: Token!
+  transactionData: TransactionData!
 }
 
-type Owner @entity(immutable: true) {
-  id: Bytes!
-  address: Bytes! # address
+type User @entity {
+  id: ID!
   balance: BigInt!
-  tokenIds: [Token!]! @derivedFrom(field: "owner")
+  tokens: [Token!]! @derivedFrom(field: "owner")
+  createdTokens: [Token!]! @derivedFrom(field: "creator")
   approvalForAlls: [ApprovalForAll!]! @derivedFrom(field: "owner")
 }
 
-type Token @entity(immutable: true) {
+type ApprovalForAll @entity(immutable: true) {
   id: Bytes!
-  owner: Owner!
-  approvals: [Approval!]! @derivedFrom(field: "token")
-  transfers: [Transfer!]! @derivedFrom(field: "token")
+  owner: User!
+  operator: Bytes! # address
+  approved: Boolean!
+  transactionData: TransactionData!
+}
+
+type TransactionData @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }

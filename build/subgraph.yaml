@@ -14,12 +14,13 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Approval
-        - ApprovalForAll
         - OwnershipTransferred
-        - Transfer
-        - Owner
         - Token
+        - Approval
+        - Transfer
+        - User
+        - ApprovalForAll
+        - TransactionData
       abis:
         - name: NFT
           file: NFT/abis/NFT.json
