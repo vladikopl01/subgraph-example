@@ -33,4 +33,4 @@ dataSources:
           handler: handleOwnershipTransferred
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-      file: ./src/nft.ts
+      file: ./src/mappings.ts

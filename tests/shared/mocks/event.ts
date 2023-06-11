@@ -1,37 +1,11 @@
-import {
-  Address,
-  BigInt,
-  Bytes,
-  crypto,
-  ethereum,
-} from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
   Approval,
   ApprovalForAll,
   OwnershipTransferred,
   Transfer,
-} from "../generated/NFT/NFT";
-import { Token } from "../generated/schema";
-
-export function createAddress(input: string = ""): Address {
-  const inputBytes = Bytes.fromUTF8(input);
-  const hashBytes = crypto.keccak256(inputBytes);
-  const addressBytes = hashBytes.slice(12, 32);
-  return Address.fromBytes(Bytes.fromUint8Array(addressBytes));
-}
-
-export function createToken(
-  id: Bytes,
-  creatorId: string,
-  ownerId: string
-): Token {
-  let token = new Token(id.toString());
-  token.owner = creatorId;
-  token.creator = ownerId;
-  token.save();
-  return token;
-}
+} from "../../../generated/NFT/NFT";
 
 export function createApprovalEvent(
   owner: Address,

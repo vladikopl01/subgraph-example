@@ -20,8 +20,6 @@ export function handleOwnershipTransferred(
 ): void {
   let id = event.transaction.hash.concatI32(event.logIndex.toI32());
   let ownershipTransferred = new OwnershipTransferred(id);
-  ownershipTransferred.previousOwner = event.params.previousOwner;
-  ownershipTransferred.newOwner = event.params.newOwner;
 
   // Handle transaction data
   let transactionData = new TransactionData(id);
@@ -30,6 +28,8 @@ export function handleOwnershipTransferred(
   transactionData.transactionHash = event.transaction.hash;
   transactionData.save();
 
+  ownershipTransferred.previousOwner = event.params.previousOwner;
+  ownershipTransferred.newOwner = event.params.newOwner;
   ownershipTransferred.transactionData = transactionData.id;
   ownershipTransferred.save();
 }
@@ -37,14 +37,10 @@ export function handleOwnershipTransferred(
 export function handleApproval(event: ApprovalEvent): void {
   let id = event.transaction.hash.concatI32(event.logIndex.toI32());
   let approval = new Approval(id);
-  approval.approved = event.params.approved;
 
   // Handle token
   let token = Token.load(event.params.tokenId.toString());
-  if (token == null) {
-    throw new Error("Token not found");
-  }
-  approval.token = token.id;
+  if (token == null) return;
 
   // Handle transaction data
   let transactionData = new TransactionData(id);
@@ -53,6 +49,8 @@ export function handleApproval(event: ApprovalEvent): void {
   transactionData.transactionHash = event.transaction.hash;
   transactionData.save();
 
+  approval.approved = event.params.approved;
+  approval.token = token.id;
   approval.transactionData = transactionData.id;
   approval.save();
 }
@@ -60,15 +58,10 @@ export function handleApproval(event: ApprovalEvent): void {
 export function handleApprovalForAll(event: ApprovalForAllEvent): void {
   let id = event.transaction.hash.concatI32(event.logIndex.toI32());
   let approvalForAll = new ApprovalForAll(id);
-  approvalForAll.operator = event.params.operator;
-  approvalForAll.approved = event.params.approved;
 
   // Handle owner
   let owner = User.load(event.params.owner.toHex());
-  if (owner == null) {
-    throw new Error("Owner not found");
-  }
-  approvalForAll.owner = owner.id;
+  if (owner == null) return;
 
   // Handle transaction data
   let transactionData = new TransactionData(id);
@@ -77,6 +70,9 @@ export function handleApprovalForAll(event: ApprovalForAllEvent): void {
   transactionData.transactionHash = event.transaction.hash;
   transactionData.save();
 
+  approvalForAll.operator = event.params.operator;
+  approvalForAll.approved = event.params.approved;
+  approvalForAll.owner = owner.id;
   approvalForAll.transactionData = transactionData.id;
   approvalForAll.save();
 }
@@ -92,7 +88,6 @@ export function handleTransfer(event: TransferEvent): void {
   if (token == null) {
     token = new Token(event.params.tokenId.toString());
 
-    // Handle creator
     let creator = User.load(event.params.to.toHex());
     if (creator == null) {
       creator = new User(event.params.to.toHex());
@@ -106,17 +101,22 @@ export function handleTransfer(event: TransferEvent): void {
     token.owner = creator.id;
     token.save();
   } else {
-    // Handle owner
-    let owner = User.load(event.params.to.toHex());
-    if (owner == null) {
-      owner = new User(event.params.to.toHex());
-      owner.balance = BigInt.fromI32(1);
-    } else {
-      owner.balance = owner.balance.plus(BigInt.fromI32(1));
-    }
+    let owner = User.load(event.params.from.toHex());
+    // Will not happen as owner is always set if token exists
+    if (owner == null) return;
+    owner.balance = owner.balance.minus(BigInt.fromI32(1));
     owner.save();
 
-    token.owner = owner.id;
+    let receiver = User.load(event.params.to.toHex());
+    if (receiver == null) {
+      receiver = new User(event.params.to.toHex());
+      receiver.balance = BigInt.fromI32(1);
+    } else {
+      receiver.balance = receiver.balance.plus(BigInt.fromI32(1));
+    }
+    receiver.save();
+
+    token.owner = receiver.id;
     token.save();
   }
 

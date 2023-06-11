@@ -7,7 +7,6 @@ type OwnershipTransferred @entity(immutable: true) {
 
 type Token @entity {
   id: ID! # ID behaves as String
-  tokenId: BigInt!
   creator: User!
   owner: User!
   approvals: [Approval!]! @derivedFrom(field: "token")
